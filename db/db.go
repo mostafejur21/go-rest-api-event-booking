@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	"log"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -10,18 +9,31 @@ import (
 var DB *sql.DB
 
 func InitDB() {
+	var err error
 	// this will open or create a db. in this case it is sqlite 3
-	DB, err := sql.Open("sqlite3", "api.db")
+	DB, err = sql.Open("sqlite3", "api.db")
 	if err != nil {
 		panic("Could not connect to the database")
 	}
 
 	DB.SetMaxOpenConns(10)
 	DB.SetMaxIdleConns(5)
+
 	createTable()
 }
 
 func createTable() {
+	createUserTable := `
+    CREATE TABLE IF NOT EXISTS users(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL
+    )
+    `
+	_, err := DB.Exec(createUserTable)
+	if err != nil {
+		panic("could not create user table")
+	}
 	createEventsTable := `
     CREATE TABLE IF NOT EXISTS events (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -29,13 +41,13 @@ func createTable() {
         description TEXT NOT NULL,
         location TEXT NOT NULL,
         dateTime DATETIME NOT NULL,
-        user_id INTEGER
+        user_id INTEGER,
+        FOREIGN KEY(user_id) REFERENCES users(id)
     )
     `
 
-	result, err := DB.Exec(createEventsTable)
+	_, err = DB.Exec(createEventsTable)
 	if err != nil {
 		panic("Could not create events table")
 	}
-	log.Println(result)
 }
