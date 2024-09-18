@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/mostafejur21/go_rest_api/models"
+	"github.com/mostafejur21/go_rest_api/utils"
 )
 
 func signup(context *gin.Context) {
@@ -29,6 +30,7 @@ func login(context *gin.Context) {
 	err := context.ShouldBindJSON(&user)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not parse user data"})
+		return
 	}
 
 	err = user.ValidateCredential()
@@ -36,5 +38,11 @@ func login(context *gin.Context) {
 		context.JSON(http.StatusUnauthorized, gin.H{"message": "Could not authenticate user."})
 		return
 	}
-	context.JSON(http.StatusOK, gin.H{"message": "Success"})
+	token, err := utils.GenerateToken(user.Email, user.ID)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not parse user data"})
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{"message": "Success", "token": token})
 }
