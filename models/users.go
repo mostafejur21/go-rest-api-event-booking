@@ -1,6 +1,8 @@
 package models
 
 import (
+	"errors"
+
 	"github.com/mostafejur21/go_rest_api/db"
 	"github.com/mostafejur21/go_rest_api/utils"
 )
@@ -18,7 +20,7 @@ func (u User) Save() error {
 		return nil
 	}
 	defer stmt.Close()
-	hashedPassword, err := utils.PasswordHashed(u.Password)
+	hashedPassword, err := utils.HashPassword(u.Password)
 	if err != nil {
 		return err
 	}
@@ -30,4 +32,21 @@ func (u User) Save() error {
 	userID, err := result.LastInsertId()
 	u.ID = userID
 	return err
+}
+
+func (u User) ValidateCredential() error {
+	query := "SELECT password FROM users WHERE email = ?"
+	row := db.DB.QueryRow(query, u.Email)
+	var retrivePassword string
+    err := row.Scan(&retrivePassword)
+    if err != nil{
+
+		return errors.New("invalid credentials")
+    }
+	passwordValid := utils.CheckHashedPassword(u.Password, retrivePassword)
+
+	if !passwordValid {
+		return errors.New("invalid credentials")
+	}
+	return nil
 }
