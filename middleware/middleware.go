@@ -1,10 +1,10 @@
 package middleware
 
 import (
-	"net/http"
+    "net/http"
 
-	"github.com/gin-gonic/gin"
-	"github.com/mostafejur21/go_rest_api/utils"
+    "github.com/gin-gonic/gin"
+    "github.com/mostafejur21/go_rest_api/utils"
 )
 
 func Authenticate (context *gin.Context){
